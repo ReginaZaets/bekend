@@ -15,7 +15,8 @@ const server = http.createServer((request, response) => {
     response.end();
     return;
   }
-  if (request.url === "/?hello") {
+  if (url.searchParams.get("hello") && !userName) {
+    //   if (request.url === "/?hello") {
     response.statusCode = 400;
     response.statusMessage = "Bad Request";
     response.setHeader("Content-Type", "text/plain");
@@ -40,12 +41,21 @@ const server = http.createServer((request, response) => {
     response.end();
     return;
   }
-  response.statusCode = 500;
-  response.statusMessage = "Bad Request";
-  response.setHeader("Content-Type", "text/plain");
-  response.write("{}");
-  response.end();
-  return;
+  for (const key of url.searchParams.keys()) {
+    // Сокращенная форма statusCode, statusMessage и setHeader -> writeHead
+    if (key !== "hello" && key !== "users") {
+      response.writeHead(500, { "Content-Type": "text/plain" });
+      response.write("Bad Request");
+      response.end();
+      return;
+    }
+  }
+//   response.statusCode = 500;
+//   response.statusMessage = "Bad Request";
+//   response.setHeader("Content-Type", "text/plain");
+//   response.write("{}");
+//   response.end();
+//   return;
 });
 
 server.listen(3003, () => {

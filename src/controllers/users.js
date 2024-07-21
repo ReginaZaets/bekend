@@ -1,7 +1,6 @@
 const User = require("../models/user");
 
-const getText = (request, response) => {
-  console.log("GET / route accessed");
+const getMain = (request, response) => {
   response.send("Hello,world");
 };
 // Получим всех пользователей из БД
@@ -20,7 +19,11 @@ const getUser = (req, res) => {
   const { user_id } = req.params;
   User.findById(user_id)
     .then((user) => {
-      res.status(200).send(user);
+      if (!user) {
+        return res.status(404).send("user not found");
+      } else {
+        res.status(200).send(user);
+      }
     })
     .catch((e) => {
       res.status(500).send(e.message);
@@ -38,15 +41,41 @@ const createUser = (req, res) => {
       res.status(500).send(e.message);
     });
 };
-const updateUser = (request, response) => {
-  //получение пользователя
+
+//Изменяем пользователя
+const updateUser = (req, res) => {
+  const { user_id } = req.params;
+  User.findByIdAndUpdate(user_id, { ...req.body })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send("user not found");
+      } else {
+        res.status(200).send(user);
+      }
+    })
+    .catch((e) => {
+      res.status(500).send(e.message);
+    });
 };
-const deleteUser = (request, response) => {
-  //получение пользователя
+
+//Удаление пользователя
+const deleteUser = (req, res) => {
+  const { user_id } = req.params;
+  User.findByIdAndDelete(user_id)
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send("user not found");
+      } else {
+        res.status(200).send("Success");
+      }
+    })
+    .catch((e) => {
+      res.status(500).send(e.message);
+    });
 };
 
 module.exports = {
-  getText,
+  getMain,
   getUsers,
   getUser,
   createUser,

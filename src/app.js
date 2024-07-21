@@ -4,17 +4,14 @@ const bodyparser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const userRouter = require("./routes/urers");
-const loggerOne = require("./middlewares/loggerOne");
-
+const bookRouter = require("./routes/books");
+const notFound = require("./middlewares/notFound");
+const originalUrl = require("./middlewares/originalUrl");
 const app = express();
 
 dotenv.config();
 
-const {
-  PORT = 3005,
-  API_URL = "http://127.0.0.1",
-  MONGO_URL = "mongodb://localhost:27017/mydb",
-} = process.env;
+const { PORT, API_URL, MONGO_URL } = process.env;
 
 mongoose
   .connect(MONGO_URL)
@@ -22,9 +19,11 @@ mongoose
   .catch((error) => console.log(error));
 
 app.use(cors());
-app.use(loggerOne);
 app.use(bodyparser.json());
+app.use(originalUrl);
 app.use(userRouter);
+app.use(bookRouter);
+app.use(notFound);
 
 app.listen(PORT, () => {
   console.log(`Север запущен по адресу ${API_URL}:${PORT}`);

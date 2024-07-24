@@ -1,63 +1,30 @@
-const http = require("http");
-const getUsers = require("./modules/users");
-const { URL } = require("url");
+const express = require("express");
+const dotenv = require("dotenv");
+const bodyparser = require("body-parser");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const userRouter = require("./routes/urers");
+const bookRouter = require("./routes/books");
+const notFound = require("./middlewares/notFound");
+const originalUrl = require("./middlewares/originalUrl");
+const app = express();
 
-const server = http.createServer((request, response) => {
-  const ipAdress = "http://127.0.0.1:3003";
-  const url = new URL(request.url, ipAdress);
+dotenv.config();
 
-  const userName = url.searchParams.get("hello");
-  if (userName) {
-    response.statusCode = 200;
-    response.statusMessage = "OK";
-    response.setHeader("Content-Type", "text/plain");
-    response.write(`Hello, ${userName}`);
-    response.end();
-    return;
-  }
-  if (url.searchParams.get("hello") && !userName) {
-    //   if (request.url === "/?hello") {
-    response.statusCode = 400;
-    response.statusMessage = "Bad Request";
-    response.setHeader("Content-Type", "text/plain");
-    response.write("Enter a name");
-    response.end();
-    return;
-  }
+const { PORT, API_URL, MONGO_URL } = process.env;
 
-  if (request.url === "/users") {
-    response.statusCode = 200;
-    response.statusMessage = "OK";
-    response.setHeader("Content-Type", "application/json");
-    response.write(getUsers());
-    response.end();
-    return;
-  }
-  if (request.url === "/") {
-    response.statusCode = 200;
-    response.statusMessage = "OK";
-    response.setHeader("Content-Type", "text/plain");
-    response.write("Hello, world");
-    response.end();
-    return;
-  }
-  for (const key of url.searchParams.keys()) {
-    // Сокращенная форма statusCode, statusMessage и setHeader -> writeHead
-    if (key !== "hello" && key !== "users") {
-      response.writeHead(500, { "Content-Type": "text/plain" });
-      response.write("Bad Request");
-      response.end();
-      return;
-    }
-  }
-//   response.statusCode = 500;
-//   response.statusMessage = "Bad Request";
-//   response.setHeader("Content-Type", "text/plain");
-//   response.write("{}");
-//   response.end();
-//   return;
-});
+mongoose
+  .connect(MONGO_URL)
+  .then(() => console.log("Conneted to MongoDB"))
+  .catch((error) => console.log(error));
 
-server.listen(3003, () => {
-  console.log("Север запущен по адресу http://127.0.0.1:3003");
+app.use(cors());
+app.use(bodyparser.json());
+app.use(originalUrl);
+app.use(userRouter);
+app.use(bookRouter);
+app.use(notFound);
+
+app.listen(PORT, () => {
+  console.log(`Север запущен по адресу ${API_URL}:${PORT}`);
 });
